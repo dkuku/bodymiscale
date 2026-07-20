@@ -91,6 +91,8 @@
       "bone_mass": { "name": "Bone mass" },
       "ecw_tbw_ratio": { "name": "ECW/TBW ratio" },
       "extracellular_water": { "name": "Extracellular water" },
+      "fat_free_mass_index": { "name": "Fat-free mass index" },
+      "fat_mass_index": { "name": "Fat mass index" },
       "impedance": { "name": "Impedance" },
       "impedance_high": { "name": "Impedance (250 kHz)" },
       "impedance_low": { "name": "Impedance (50 kHz)" },
@@ -100,6 +102,7 @@
       "metabolic_age": { "name": "Metabolic age" },
       "muscle_mass": { "name": "Muscle mass" },
       "protein": { "name": "Protein" },
+      "skeletal_muscle_index": { "name": "Skeletal muscle index" },
       "skeletal_muscle_mass": { "name": "Skeletal muscle mass" },
       "visceral_fat": { "name": "Visceral fat" },
       "water": { "name": "Water" },
@@ -151,6 +154,8 @@
         "bone_mass": { "name": "Bone mass" },
         "ecw_tbw_ratio": { "name": "ECW/TBW ratio" },
         "extracellular_water": { "name": "Extracellular water" },
+        "fat_free_mass_index": { "name": "Fat-free mass index" },
+        "fat_mass_index": { "name": "Fat mass index" },
         "fat_mass_to_gain": { "name": "Fat mass to gain" },
         "fat_mass_to_lose": { "name": "Fat mass to lose" },
         "gender": {
@@ -190,6 +195,7 @@
           }
         },
         "protein": { "name": "Protein" },
+        "skeletal_muscle_index": { "name": "Skeletal muscle index" },
         "skeletal_muscle_mass": { "name": "Skeletal muscle mass" },
         "visceral_fat": { "name": "Visceral fat" },
         "water": { "name": "Water" },

@@ -79,6 +79,7 @@ from .impedance import (
     get_skeletal_muscle_mass,
     get_water_percentage,
 )
+from .indices import get_ffmi, get_fmi, get_smi
 from .scale import Scale
 from .weight import get_bmi, get_bmr, get_visceral_fat
 
@@ -159,6 +160,12 @@ _METRIC_DEPS: dict[Metric, MetricInfo] = {
         get_skeletal_muscle_mass,
         2,
     ),
+    # ── Height-normalised body-composition indices (kg/m²) ─────────────────────
+    # FFMI/FMI need impedance (LBM, fat%); SMI follows skeletal muscle mass,
+    # which is available in every mode.
+    Metric.FFMI: MetricInfo([Metric.LBM], get_ffmi, 1),
+    Metric.FMI: MetricInfo([Metric.WEIGHT, Metric.FAT_PERCENTAGE], get_fmi, 1),
+    Metric.SMI: MetricInfo([Metric.SKELETAL_MUSCLE_MASS], get_smi, 1),
     # ── Body score ───────────────────────────────────────────────────────────
     Metric.BODY_SCORE: MetricInfo(
         [
@@ -328,14 +335,14 @@ class BodyScaleMetricsHandler:
         )
 
         # Metrics computed in the weight-only pass. In no-impedance mode the
-        # impedance pass never runs, so the anthropometric skeletal muscle mass
-        # (Lee 2000) must be produced here instead.
+        # impedance pass never runs, so the anthropometric skeletal-muscle
+        # metrics (Lee 2000) must be produced here instead.
         weight_only = set(self._WEIGHT_ONLY_METRICS)
         if (
             self._config.get(CONF_IMPEDANCE_MODE, IMPEDANCE_MODE_NONE)
             == IMPEDANCE_MODE_NONE
         ):
-            weight_only |= {Metric.SKELETAL_MUSCLE_MASS}
+            weight_only |= {Metric.SKELETAL_MUSCLE_MASS, Metric.SMI}
         self._weight_only_metrics: frozenset[Metric] = frozenset(weight_only)
 
         # Sensor problems: { "weight": "high", "impedance": "unavailable", ... }
