@@ -13,6 +13,8 @@ from .const import (
     ATTR_ECW_TBW_RATIO,
     ATTR_EXTRACELLULAR_WATER,
     ATTR_FAT,
+    ATTR_FFMI,
+    ATTR_FMI,
     ATTR_INTRACELLULAR_WATER,
     ATTR_LAST_MEASUREMENT_TIME,
     ATTR_LBM,
@@ -20,6 +22,7 @@ from .const import (
     ATTR_MUSCLE,
     ATTR_PROTEIN,
     ATTR_SKELETAL_MUSCLE_MASS,
+    ATTR_SMI,
     ATTR_VISCERAL,
     ATTR_WATER,
     CONF_SENSOR_IMPEDANCE,
@@ -73,3 +76,8 @@ class Metric(StrEnum):
     ECW_TBW_RATIO = ATTR_ECW_TBW_RATIO
     BCM = ATTR_BCM
     SKELETAL_MUSCLE_MASS = ATTR_SKELETAL_MUSCLE_MASS
+
+    # height-normalised body-composition indices
+    FFMI = ATTR_FFMI
+    FMI = ATTR_FMI
+    SMI = ATTR_SMI
