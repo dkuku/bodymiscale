@@ -149,8 +149,13 @@ _METRIC_DEPS: dict[Metric, MetricInfo] = {
         [Metric.WATER_PERCENTAGE, Metric.ECW], get_ecw_tbw_ratio, 1
     ),
     Metric.BCM: MetricInfo([Metric.WATER_PERCENTAGE, Metric.ECW], get_bcm, 2),
+    # Skeletal muscle mass is available in every mode: Janssen BIA when
+    # impedance is present (standard uses the single reading, dual the 50 kHz
+    # one), Lee-2000 anthropometric otherwise. It therefore depends only on
+    # weight; the per-mode impedance requirement is enforced inside the
+    # calculator (returns None when its resistance value is missing).
     Metric.SKELETAL_MUSCLE_MASS: MetricInfo(
-        [Metric.LBM, Metric.IMPEDANCE_LOW, Metric.IMPEDANCE_HIGH],
+        [Metric.WEIGHT],
         get_skeletal_muscle_mass,
         2,
     ),
@@ -321,6 +326,17 @@ class BodyScaleMetricsHandler:
         self._available_metrics: MutableMapping[Metric, StateType | datetime] = (
             _MetricsStore(ttl=60)
         )
+
+        # Metrics computed in the weight-only pass. In no-impedance mode the
+        # impedance pass never runs, so the anthropometric skeletal muscle mass
+        # (Lee 2000) must be produced here instead.
+        weight_only = set(self._WEIGHT_ONLY_METRICS)
+        if (
+            self._config.get(CONF_IMPEDANCE_MODE, IMPEDANCE_MODE_NONE)
+            == IMPEDANCE_MODE_NONE
+        ):
+            weight_only |= {Metric.SKELETAL_MUSCLE_MASS}
+        self._weight_only_metrics: frozenset[Metric] = frozenset(weight_only)
 
         # Sensor problems: { "weight": "high", "impedance": "unavailable", ... }
         self._sensor_problems: dict[str, str] = {}
@@ -632,7 +648,7 @@ class BodyScaleMetricsHandler:
 
         try:
             val = float(state)
-        except TypeError, ValueError:
+        except (TypeError, ValueError):  # fmt: skip
             _LOGGER.debug(
                 "restore_metric: cannot coerce '%s' to float for %s — skipped",
                 state,
@@ -1010,14 +1026,14 @@ class BodyScaleMetricsHandler:
         _LOGGER.debug("[%s][recalc] Weight-only pass", self._name)
         self._update_available_metric(Metric.LAST_MEASUREMENT_TIME, dt_util.utcnow())
         for metric in self._topological_order():
-            if metric in self._WEIGHT_ONLY_METRICS:
+            if metric in self._weight_only_metrics:
                 self._compute_metric(metric)
 
     def _trigger_impedance_metrics(self) -> None:
         """Compute metrics that require impedance — skip weight-only metrics already computed."""
         _LOGGER.debug("[%s][recalc] Impedance pass", self._name)
         for metric in self._topological_order():
-            if metric not in self._WEIGHT_ONLY_METRICS:
+            if metric not in self._weight_only_metrics:
                 self._compute_metric(metric)
 
     def _trigger_dependent_recalculation(self) -> None:

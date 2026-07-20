@@ -120,6 +120,21 @@ _BASE_SENSORS: tuple[
         Metric.LAST_MEASUREMENT_TIME,
         None,
     ),
+    # Skeletal muscle mass — available in every mode: Janssen BIA when impedance
+    # is present, Lee-2000 anthropometric estimate otherwise.
+    (
+        SensorEntityDescription(
+            key=ATTR_SKELETAL_MUSCLE_MASS,
+            translation_key="skeletal_muscle_mass",
+            icon="mdi:arm-flex",
+            native_unit_of_measurement=UnitOfMass.KILOGRAMS,
+            device_class=SensorDeviceClass.WEIGHT,
+            state_class=SensorStateClass.MEASUREMENT,
+            suggested_display_precision=2,
+        ),
+        Metric.SKELETAL_MUSCLE_MASS,
+        None,
+    ),
 )
 
 # Sensors available in BOTH standard and dual impedance modes
@@ -289,19 +304,6 @@ _DUAL_SENSORS: tuple[
             suggested_display_precision=2,
         ),
         Metric.BCM,
-        None,
-    ),
-    (
-        SensorEntityDescription(
-            key=ATTR_SKELETAL_MUSCLE_MASS,
-            translation_key="skeletal_muscle_mass",
-            icon="mdi:arm-flex",
-            native_unit_of_measurement=UnitOfMass.KILOGRAMS,
-            device_class=SensorDeviceClass.WEIGHT,
-            state_class=SensorStateClass.MEASUREMENT,
-            suggested_display_precision=2,
-        ),
-        Metric.SKELETAL_MUSCLE_MASS,
         None,
     ),
     (
