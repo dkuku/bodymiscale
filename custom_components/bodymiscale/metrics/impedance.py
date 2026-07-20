@@ -51,6 +51,7 @@ from ..const import (
     CONF_IMPEDANCE_MODE,
     CONF_SCALE,
     IMPEDANCE_MODE_DUAL,
+    IMPEDANCE_MODE_NONE,
 )
 from ..models import Gender, Metric
 from ..util import (
@@ -396,27 +397,49 @@ def get_bcm(
 
 def get_skeletal_muscle_mass(
     config: Mapping[str, Any], metrics: Mapping[Metric, StateType | datetime]
-) -> float:
+) -> StateType:
     """Calculate Skeletal Muscle Mass (SMM) in kg.
 
-    Janssen et al. 2000 — direct BIA equation validated against MRI:
-        SMM = (H²/Z_lf × 0.401) + (Sex × 3.825) + (A × -0.071) + 5.102
-        (Sex = 1 for male, 0 for female)
+    The estimator adapts to the available hardware:
 
-    More specific than generic "muscle mass" as it targets skeletal muscle only.
+    STANDARD / DUAL (impedance available) — Janssen et al. 2000, a direct BIA
+    equation validated against MRI. It only needs a single resistance value:
+    dual mode uses the 50 kHz (low-frequency) reading, standard mode uses its
+    single impedance:
+        SMM = (H²/Z × 0.401) + (Sex × 3.825) + (A × -0.071) + 5.102
+
+    NO IMPEDANCE (Gen1 scales) — Lee et al. 2000 anthropometric model, which
+    needs no resistance at all (height, weight, age, sex):
+        SMM = 0.244·W + 7.80·H_m − 0.098·A + 6.6·Sex − 3.3
+
+    (Sex = 1 for male, 0 for female.)
+
+    Returns ``None`` when the data required for the active mode is unavailable.
     """
     h = to_float(config.get(CONF_HEIGHT))
     a = to_float(metrics.get(Metric.AGE))
-    z_lf = _get_z_lf(metrics)
     gender = config.get(CONF_GENDER)
 
-    if h <= 0 or a <= 0 or z_lf <= 0 or gender is None:
-        return 0.0
+    if h <= 0 or a <= 0 or gender is None:
+        return None
 
-    ri_lf = (h * h) / z_lf
     sex = 1.0 if gender == Gender.MALE else 0.0
-    # Janssen et al. 2000 — direct BIA equation
-    smm = (ri_lf * 0.401) + (sex * 3.825) + (a * -0.071) + 5.102
+    mode = config.get(CONF_IMPEDANCE_MODE, IMPEDANCE_MODE_NONE)
+
+    if mode == IMPEDANCE_MODE_NONE:
+        # No impedance hardware — Lee 2000 anthropometric estimate.
+        w = to_float(metrics.get(Metric.WEIGHT))
+        if w <= 0:
+            return None
+        smm = 0.244 * w + 7.80 * (h / 100.0) - 0.098 * a + 6.6 * sex - 3.3
+        return max(0.0, smm)
+
+    # Impedance available — Janssen et al. 2000 (single resistance value).
+    z = _get_z_lf(metrics) if mode == IMPEDANCE_MODE_DUAL else _get_z_std(metrics)
+    if z <= 0:
+        return None
+
+    smm = ((h * h) / z * 0.401) + (sex * 3.825) + (a * -0.071) + 5.102
     return max(0.0, smm)
 
 
