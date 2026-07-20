@@ -118,7 +118,7 @@ class ProfileIdFilter(ProfileFilter):
 
         try:
             current_id = int(float(state.state))
-        except ValueError, TypeError:
+        except (ValueError, TypeError):
             _LOGGER.debug(
                 "Profile-ID filter: state '%s' not numeric — rejected", state.state
             )

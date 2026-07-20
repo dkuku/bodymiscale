@@ -27,6 +27,9 @@ from .const import (
     ATTR_ECW_TBW_RATIO,
     ATTR_EXTRACELLULAR_WATER,
     ATTR_FAT,
+    ATTR_FFMI,
+    ATTR_FFMI_NORMALIZED,
+    ATTR_FMI,
     ATTR_IDEAL,
     ATTR_INTRACELLULAR_WATER,
     ATTR_LAST_MEASUREMENT_TIME,
@@ -35,8 +38,10 @@ from .const import (
     ATTR_MUSCLE,
     ATTR_PROTEIN,
     ATTR_SKELETAL_MUSCLE_MASS,
+    ATTR_SMI,
     ATTR_VISCERAL,
     ATTR_WATER,
+    CONF_HEIGHT,
     CONF_IMPEDANCE_MODE,
     CONF_SENSOR_IMPEDANCE,
     CONF_SENSOR_IMPEDANCE_HIGH,
@@ -49,6 +54,7 @@ from .const import (
 )
 from .entity import BodyScaleBaseEntity
 from .metrics import BodyScaleMetricsHandler
+from .metrics.indices import normalized_ffmi
 from .models import Metric
 from .util import get_bmi_label, get_ideal_weight
 
@@ -118,6 +124,33 @@ _BASE_SENSORS: tuple[
             device_class=SensorDeviceClass.TIMESTAMP,
         ),
         Metric.LAST_MEASUREMENT_TIME,
+        None,
+    ),
+    # Skeletal muscle mass & index — available in every mode: Janssen BIA when
+    # impedance is present, Lee-2000 anthropometric estimate otherwise.
+    (
+        SensorEntityDescription(
+            key=ATTR_SKELETAL_MUSCLE_MASS,
+            translation_key="skeletal_muscle_mass",
+            icon="mdi:arm-flex",
+            native_unit_of_measurement=UnitOfMass.KILOGRAMS,
+            device_class=SensorDeviceClass.WEIGHT,
+            state_class=SensorStateClass.MEASUREMENT,
+            suggested_display_precision=2,
+        ),
+        Metric.SKELETAL_MUSCLE_MASS,
+        None,
+    ),
+    (
+        SensorEntityDescription(
+            key=ATTR_SMI,
+            translation_key="skeletal_muscle_index",
+            icon="mdi:arm-flex",
+            native_unit_of_measurement="kg/m²",
+            state_class=SensorStateClass.MEASUREMENT,
+            suggested_display_precision=1,
+        ),
+        Metric.SMI,
         None,
     ),
 )
@@ -209,6 +242,36 @@ _IMPEDANCE_SENSORS: tuple[
     ),
     (
         SensorEntityDescription(
+            key=ATTR_FFMI,
+            translation_key="fat_free_mass_index",
+            icon="mdi:arm-flex",
+            native_unit_of_measurement="kg/m²",
+            state_class=SensorStateClass.MEASUREMENT,
+            suggested_display_precision=1,
+        ),
+        Metric.FFMI,
+        lambda state, config: {
+            ATTR_FFMI_NORMALIZED: (
+                normalized_ffmi(float(state), float(config.get(CONF_HEIGHT) or 0))
+                if isinstance(state, (int, float))
+                else None
+            )
+        },
+    ),
+    (
+        SensorEntityDescription(
+            key=ATTR_FMI,
+            translation_key="fat_mass_index",
+            icon="mdi:scale-bathroom",
+            native_unit_of_measurement="kg/m²",
+            state_class=SensorStateClass.MEASUREMENT,
+            suggested_display_precision=1,
+        ),
+        Metric.FMI,
+        None,
+    ),
+    (
+        SensorEntityDescription(
             key=ATTR_BODY_SCORE,
             translation_key="body_score",
             suggested_display_precision=0,
@@ -289,19 +352,6 @@ _DUAL_SENSORS: tuple[
             suggested_display_precision=2,
         ),
         Metric.BCM,
-        None,
-    ),
-    (
-        SensorEntityDescription(
-            key=ATTR_SKELETAL_MUSCLE_MASS,
-            translation_key="skeletal_muscle_mass",
-            icon="mdi:arm-flex",
-            native_unit_of_measurement=UnitOfMass.KILOGRAMS,
-            device_class=SensorDeviceClass.WEIGHT,
-            state_class=SensorStateClass.MEASUREMENT,
-            suggested_display_precision=2,
-        ),
-        Metric.SKELETAL_MUSCLE_MASS,
         None,
     ),
     (

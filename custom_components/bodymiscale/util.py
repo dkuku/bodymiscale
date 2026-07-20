@@ -24,7 +24,7 @@ def to_float(val: Any, default: float = 0.0) -> float:
     if isinstance(val, str):
         try:
             return float(val)
-        except ValueError, TypeError:
+        except (ValueError, TypeError):
             return default
     return default
 
@@ -116,5 +116,5 @@ def get_age(date_str: str) -> int:
         if (today.month, today.day) < (born.month, born.day):
             age -= 1
         return age
-    except ValueError, TypeError:
+    except (ValueError, TypeError):
         return 0

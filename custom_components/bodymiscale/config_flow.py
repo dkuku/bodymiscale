@@ -365,7 +365,7 @@ def _validate_nearest(user_input: dict[str, Any], errors: dict[str, str]) -> Non
                 errors[CONF_INITIAL_WEIGHT] = "weight_low"
             elif value > CONSTRAINT_WEIGHT_MAX:
                 errors[CONF_INITIAL_WEIGHT] = "weight_limit"
-        except TypeError, ValueError:
+        except (TypeError, ValueError):
             errors[CONF_INITIAL_WEIGHT] = "weight_range_invalid"
 
     if tolerance is None:
@@ -377,7 +377,7 @@ def _validate_nearest(user_input: dict[str, Any], errors: dict[str, str]) -> Non
                 errors[CONF_NEAREST_TOLERANCE] = "weight_low"
             elif tol_value > 99:
                 errors[CONF_NEAREST_TOLERANCE] = "weight_limit"
-        except TypeError, ValueError:
+        except (TypeError, ValueError):
             errors[CONF_NEAREST_TOLERANCE] = "weight_range_invalid"
 
 
